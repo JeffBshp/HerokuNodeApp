@@ -5,56 +5,46 @@
   </head>
   <body>
     <% include ../partials/nav.ejs %>
-    <div class="jumbotron text-center">
-      <div class="container">
-        <a href="/" class="lang-logo">
-          <img src="/lang-logo.png">
-        </a>
-        <h1>Test Application</h1>
-        <p>This is a Node.js application deployed to Heroku.</p>
-        <a type="button" class="btn btn-lg btn-default" href="#">
-          <span class="glyphicon glyphicon-flash"></span> Button Link 1
-        </a>
-        <a type="button" class="btn btn-lg btn-primary" href="#">
-          <span class="glyphicon glyphicon-download"></span> Button Link 2
-        </a>
-      </div>
-    </div>
     <div class="container">
-      <div class="alert alert-info text-center" role="alert">
-        This is some alert info with an <a href="#" class="alert-link">alert link</a>.
-      </div>
-      <hr>
       <div class="row">
         <div class="col-md-6">
-          <h3><span class="glyphicon glyphicon-info-sign"></span> Info 1</h3>
-          <ul>
-            <li>This is some text in a list with a <a href="#">link</a>.</li>
-            <li>This is some more text with a <a href="#">link</a>.</li>
-            <li>This is some more text in a list.</li>
-            <li>This is some more text.</li>
-          </ul>
+          <h3>Write Message</h3>
+          <form action="/" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+              <input type="text" class="form-control" name="username" placeholder="Name">
+            </div>
+            <div class="form-group">
+              <textarea class="form-control" name="message" rows="5" placeholder="Message"></textarea>
+            </div>
+            <div class="form-group">
+              <input type="submit" class="form-control" value="Submit">
+            </div>
+          </form>
         </div>
         <div class="col-md-6">
-          <h3><span class="glyphicon glyphicon-link"></span> Info 2</h3>
+          <h3>Messages</h3>
           <ul>
-            <li>This is some more info.</li>
-            <li>This is some code:</li>
-            <ul>
-              <li><code>some code</code> - some text</li>
-              <li><code>some more code</code> - some more text</li>
-            </ul>
-          </ul>
-          <h3><span class="glyphicon glyphicon-link"></span> Info 3</h3>
-          <ul>
-            <li><a href="#">Info Link 1</a></li>
-            <li><a href="#">Info Link 2</a></li>
-            <li><a href="#">Info Link 3</a></li>
+            <% results.forEach(function(r) { %>
+              <li>
+                <div class="panel panel-default">
+                  <div class="panel-heading container-fluid">
+                    <div class="row">
+                      <div class="col-md-6 col-sm-6 col-xs-6">
+                        <h3 class="panel-title"><%= r.username %></h3>
+                      </div>
+                      <div class="col-md-6 col-sm-6 col-xs-6 message-id">
+                        <h3 class="panel-title"><%= r.id %></h3>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="panel-body">
+                    <%= r.message %>
+                  </div>
+                </div>
+              </li>
+            <% }); %>
           </ul>
         </div>
-      </div>
-      <div class="alert alert-info text-center" role="alert">
-        This is more alert info.
       </div>
     </div>
   </body>
