@@ -35,27 +35,25 @@ app.post('/', function(request, response) {
       return;
     }
 
-    pg.connect(process.env.DATABASE_URL, function(error, client, done) {
-      client.query(q_post_message, [fields.username[0], fields.message[0]], function(error, result) {
-        done();
-        if (error) {
-          console.error(error);
-          response.send("Error " + error);
-        } else {
-          client.query(q_get_messages, function(error, result) {
-            done();
-            if (error) {
-              console.error(error);
-              response.send("Error " + error);
-            } else {
-              response.render('pages/index', {results: result.rows});
-            }
-          });
-        }
+    var username = fields.username[0].length == 0 ? 'Anonymous' : fields.username[0];
+    var message = fields.message[0];
+    console.log('Name: ', username, ', Message: ', message);
+    
+    if (message.length == 0) {
+      response.redirect('/');
+    } else {
+      pg.connect(process.env.DATABASE_URL, function(error, client, done) {
+        client.query(q_post_message, [username, message], function(error, result) {
+          done();
+          if (error) {
+            console.error(error);
+            response.send("Error " + error);
+          } else {
+            response.redirect('/');
+          }
+        });
       });
-    });
-
-    console.log('Name: ', fields.username[0], ', Message: ', fields.message[0]);
+    }
   });
 });
 
