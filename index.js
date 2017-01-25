@@ -38,8 +38,8 @@ app.post('/', function(request, response) {
     var username = fields.username[0].length == 0 ? 'Anonymous' : fields.username[0];
     var message = fields.message[0];
     console.log('Name: ', username, ', Message: ', message);
-    
-    if (message.length == 0) {
+
+    if (username.length > 50 || message.length == 0 || message.length > 5000) {
       response.redirect('/');
     } else {
       pg.connect(process.env.DATABASE_URL, function(error, client, done) {
