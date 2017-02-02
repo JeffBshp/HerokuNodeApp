@@ -46,7 +46,14 @@
                             <h3> </h3><a href="#" id="refresh">Refresh</a>
                         </div>
                     </div>
-					<ul id="message-list"></ul>
+					<ul id="message-list">
+                        {{#messages}}
+                            {{>message}}
+                        {{/messages}}
+                        {{^messages}}
+                            <p>No messages</p>
+                        {{/messages}}
+                    </ul>
                     <div class="row">
                         <div class="col-md-6 col-sm-6 col-xs-6">
                             <a href="#" id="top">Top</a>
@@ -62,5 +69,26 @@
         <script type="text/javascript" src="/scripts/bootstrap.min.js"></script>
         <script type="text/javascript" src="/scripts/mustache.min.js"></script>
 		<script type="text/javascript" src="/scripts/message.js"></script>
+        <script id="message-template" type="x-tmpl-mustache">
+            {{=<% %>=}}
+                <li data-id="{{id}}">
+                    <div class="panel panel-default">
+                        <div class="panel-heading container-fluid">
+                            <div class="row">
+                                <div class="col-md-6 col-sm-6 col-xs-6">
+                                    <h3 class="panel-title">{{username}}</h3>
+                                </div>
+                                <div class="col-md-6 col-sm-6 col-xs-6 right-aligned-col">
+                                    <h3 class="panel-title">{{id}}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            {{message}}
+                        </div>
+                    </div>
+                </li>
+            <%={{ }}=%>
+        </script>
 	</body>
 </html>

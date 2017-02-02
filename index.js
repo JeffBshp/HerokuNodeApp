@@ -4,19 +4,19 @@ const mustacheExpress = require('mustache-express');
 const util = require('util');
 const express = require('express');
 
-const q_get_last_id = 'SELECT id FROM Messages ORDER BY id DESC LIMIT 1';
-const q_get_messages = 'SELECT * FROM Messages WHERE id > $1 AND id < $2 ORDER BY id ASC';
-const q_post_message = 'INSERT INTO Messages(username, message) VALUES ($1, $2) RETURNING id, username, message';
-const username_max_length = 50;
-const message_max_length = 5000;
-const initial_message_count = 20;
-const max_messages_to_send = 40;
+const queryGetLastId = 'SELECT id FROM Messages ORDER BY id DESC LIMIT 1';
+const queryGetMessages = 'SELECT * FROM Messages WHERE id > $1 AND id < $2 ORDER BY id ASC';
+const queryPostMessage = 'INSERT INTO Messages(username, message) VALUES ($1, $2) RETURNING id, username, message';
+const usernameMaxLength = 50;
+const messageMaxLength = 5000;
+const initialMessageCount = 20;
+const maxMessagesToSend = 40;
 
-var app = express();
+const app = express();
 app.set('port', (process.env.PORT || 5000));
 app.use(express.static(__dirname + '/public'));
-app.engine('html', mustacheExpress());
-app.set('view engine', 'html');
+app.engine('mst', mustacheExpress(__dirname + '/views/partials'));
+app.set('view engine', 'mst');
 app.set('views', __dirname + '/views');
 
 var lastId = 0;
@@ -24,7 +24,7 @@ getLastId();
 
 function getLastId() {
     pg.connect(process.env.DATABASE_URL, function(error, client, done) {
-		client.query(q_get_last_id, function(error, result) {
+		client.query(queryGetLastId, function(error, result) {
 			done();
 			if (error) {
 				console.error(error);
@@ -38,7 +38,7 @@ function getLastId() {
 
 function getMessages(fromId, toId, response) {
     pg.connect(process.env.DATABASE_URL, function(error, client, done) {
-		client.query(q_get_messages, [fromId, toId], function(error, result) {
+		client.query(queryGetMessages, [fromId, toId], function(error, result) {
 			done();
 			if (error) {
 				console.error(error);
@@ -51,11 +51,13 @@ function getMessages(fromId, toId, response) {
 }
 
 app.get('/', function(request, response) {
-	response.render('pages/index');
+    var fromId = lastId - initialMessageCount;
+    var toId = lastId + 1;
+	response.render('pages/index', {messages: []});
 });
 
 app.get('/messages', function(request, response) {
-    var fromId = lastId - initial_message_count;
+    var fromId = lastId - initialMessageCount;
     var toId = lastId + 1;
     getMessages(fromId, toId, response);
 });
@@ -63,8 +65,8 @@ app.get('/messages', function(request, response) {
 app.get('/messages/:fromId', function(request, response) {
     var fromId = Number(request.params.fromId);
     var toId = lastId + 1;
-    if (toId - fromId - 1 > max_messages_to_send) {
-        toId = fromId + max_messages_to_send + 1;
+    if (toId - fromId - 1 > maxMessagesToSend) {
+        toId = fromId + maxMessagesToSend + 1;
     }
     getMessages(fromId, toId, response);
 });
@@ -72,8 +74,8 @@ app.get('/messages/:fromId', function(request, response) {
 app.get('/messages/:fromId/:toId', function(request, response) {
     var fromId = Number(request.params.fromId);
     var toId = Number(request.params.toId);
-    if (toId - fromId - 1 > max_messages_to_send) {
-        fromId = toId - max_messages_to_send - 1;
+    if (toId - fromId - 1 > maxMessagesToSend) {
+        fromId = toId - maxMessagesToSend - 1;
     }
     getMessages(fromId, toId, response);
 });
@@ -92,11 +94,11 @@ app.post('/messages', function(request, response) {
 		var username = body.username.length == 0 ? 'Anonymous' : body.username;
 		var message = body.message;
 
-		if (username.length > username_max_length || message.length == 0 || message.length > message_max_length) {
+		if (username.length > usernameMaxLength || message.length == 0 || message.length > messageMaxLength) {
 			response.send(false);
 		} else {
 			pg.connect(process.env.DATABASE_URL, function(error, client, done) {
-				client.query(q_post_message, [username, message], function(error, result) {
+				client.query(queryPostMessage, [username, message], function(error, result) {
 					done();
 					if (error) {
 						console.error(error);
@@ -110,35 +112,6 @@ app.post('/messages', function(request, response) {
 			});
 		}
 	});
-
-	// var form = new multiparty.Form();
-	// form.parse(request, function(error, fields, files) {
-	// 	if (error) {
-	// 		response.writeHead(400, {'content-type': 'text/plain'});
-	// 		response.end('Invalid request: ' + error.message);
-	// 		return;
-	// 	}
-
-	// 	var username = fields.username[0].length == 0 ? 'Anonymous' : fields.username[0];
-	// 	var message = fields.message[0];
-	// 	console.log('Name: ', username, ', Message: ', message);
-
-	// 	if (username.length > username_max_length || message.length == 0 || message.length > message_max_length) {
-	// 		response.send(false);
-	// 	} else {
-	// 		pg.connect(process.env.DATABASE_URL, function(error, client, done) {
-	// 			client.query(q_post_message, [username, message], function(error, result) {
-	// 				done();
-	// 				if (error) {
-	// 					console.error(error);
-	// 					response.send(error);
-	// 				} else {
-	// 					response.send(result);
-	// 				}
-	// 			});
-	// 		});
-	// 	}
-	// });
 });
 
 app.listen(app.get('port'), function() {
